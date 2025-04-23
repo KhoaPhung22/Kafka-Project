@@ -1,0 +1,5 @@
+## ✅ Requirements
+
+- Python 3.8+
+- Kafka cluster (with SASL_PLAINTEXT and PLAIN authentication)
+- MongoDB (can be local or Docker-based)

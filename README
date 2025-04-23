@@ -1,0 +1,9 @@
+# Kafka to MongoDB Pipeline
+
+This project implements a simple data streaming pipeline using Kafka and MongoDB. It reads data from a source Kafka topic, forwards it to a new Kafka topic, and then writes that data to MongoDB.
+
+## 📁 Project Structure
+
+- `kafka_reader.py`: Reads data from a source Kafka topic (`product_view`) and produces it to another topic (`khoa_destination_topic`).
+- `kafka_to_mongo.py`: Consumes data from `khoa_destination_topic` and writes it to a MongoDB collection.
+
