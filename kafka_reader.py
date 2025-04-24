@@ -5,51 +5,43 @@
 
 from kafka import KafkaConsumer, KafkaProducer
 import json
+import configparser
 
-SOURCE_TOPIC = 'product_view'
-DEST_TOPIC = 'khoa_destination_topic'
+# Load config
+config = configparser.ConfigParser()
+config.read('Kafka/config.ini')
 
-# Remote Kafka broker (source)
-REMOTE_KAFKA_BROKER = [
-    '113.160.15.232:9094',
-    '113.160.15.232:9194',
-    '113.160.15.232:9294'
-]
-
-# Local Kafka broker (destination)
-LOCAL_KAFKA_BROKER = [
-    'localhost:9094',
-    'localhost:9194',
-    'localhost:9294'
-    
-]
+# Parse brokers
+REMOTE_KAFKA_BROKER = config.get('kafka.remote', 'bootstrap_servers').split(',')
+LOCAL_KAFKA_BROKER = config.get('kafka.local', 'bootstrap_servers').split(',')
+SOURCE_TOPIC = config.get('topics', 'source_topic')
+DEST_TOPIC = config.get('topics', 'destination_topic')
 
 # Remote Kafka (consumer) config
 REMOTE_KAFKA_SECURITY_CONFIG = {
     'bootstrap_servers': REMOTE_KAFKA_BROKER,
-    'security_protocol': 'SASL_PLAINTEXT',
-    'sasl_mechanism': 'PLAIN',
-    'sasl_plain_username': 'kafka',
-    'sasl_plain_password': 'UnigapKafka@2024',
+    'security_protocol': config.get('kafka.remote', 'security_protocol'),
+    'sasl_mechanism': config.get('kafka.remote', 'sasl_mechanism'),
+    'sasl_plain_username': config.get('kafka.remote', 'sasl_plain_username'),
+    'sasl_plain_password': config.get('kafka.remote', 'sasl_plain_password'),
     'value_deserializer': lambda x: json.loads(x.decode('utf-8')),
-    'auto_offset_reset': 'earliest',
-    'group_id': 'khoa-remote-consume-group'
+    'auto_offset_reset': config.get('kafka.remote', 'auto_offset_reset'),
+    'group_id': config.get('kafka.remote', 'group_id')
 }
 
 # Local Kafka (producer) config
 LOCAL_KAFKA_PRODUCER_CONFIG = {
     'bootstrap_servers': LOCAL_KAFKA_BROKER,
+    'security_protocol': config.get('kafka.local', 'security_protocol'),
+    'sasl_mechanism': config.get('kafka.local', 'sasl_mechanism'),
     'value_serializer': lambda x: json.dumps(x).encode('utf-8'),
-    'security_protocol': 'SASL_PLAINTEXT',
-    'sasl_mechanism': 'PLAIN',
-    'sasl_plain_username': 'admin',
-    'sasl_plain_password': 'Unigap@2024'
+    'sasl_plain_username': config.get('kafka.local', 'sasl_plain_username'),
+    'sasl_plain_password': config.get('kafka.local', 'sasl_plain_password'),
 }
 
-# Consumer from remote broker
-consumer = KafkaConsumer(SOURCE_TOPIC, **REMOTE_KAFKA_SECURITY_CONFIG)
 
-# Producer to local broker
+# Start consumer and producer
+consumer = KafkaConsumer(SOURCE_TOPIC, **REMOTE_KAFKA_SECURITY_CONFIG)
 producer = KafkaProducer(**LOCAL_KAFKA_PRODUCER_CONFIG)
 
 print("Forwarding messages from remote Kafka to local Kafka...")
